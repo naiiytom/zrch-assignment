@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db/:/var/lib/postgresql/data/
+      - ./initdb/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  
+  python:
+    container_name: etl
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_CONNECTION=postgresql+psycopg2://user:password@postgres:5432/db
+    volumes:
+      - ./output:/app/output
+      - ./raw:/app/raw
+    depends_on: 
+      - postgres
